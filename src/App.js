@@ -36,7 +36,7 @@ const SHPEEmailSystem = () => {
   const editorRef = useRef(null);
   const fileInputRef = useRef(null);
   const VALID_PASSWORD = 'SHPE2024FAU';
-  const WEBHOOK_URL = 'https://gbinetti2020.app.n8n.cloud/webhook-test/shpe-fau-x7k9m2p4q8w3n5h2v9'; // Replace with your actual webhook
+  const WEBHOOK_URL = 'https://gbinetti2020.app.n8n.cloud/webhook/shpe-fau-x7k9m2p4q8w3n5h2v9'; // Replace with your actual webhook
 
   // Complete Data - ALL filters from original
   const locations = {
