@@ -295,110 +295,120 @@ const SHPEEmailSystem = () => {
     }
   };
 
-  const handleCountRecipients = async () => {
-    const filters = {
+const handleCountRecipients = async () => {
+  const filters = {
+    locations: selectedLocations,
+    specialties: selectedSpecialties,
+    programs: selectedPrograms,
+    companies: selectedCompanies
+  };
+
+  try {
+    const response = await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        filters,
+        count_only: true,
+        action: 'count'
+      })
+    });
+    
+    const data = await response.json();
+    setRecipientCount(data.count || data.length || 0);
+    showToast(`${data.count || data.length || 0} recipients match your filters`, 'info');
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('Error counting recipients. Check webhook URL.', 'error');
+  }
+};
+
+const handleSendTestEmail = async () => {
+  if (!emailSubject || !emailBody) {
+    showToast('Please enter subject and message', 'error');
+    return;
+  }
+
+  const emailData = {
+    email_subject: emailSubject,
+    email_body: editorRef.current?.innerHTML || emailBody,
+    test_email_address: 'your-test-email@gmail.com', // Change this to your test email
+    filters: {
       locations: selectedLocations,
       specialties: selectedSpecialties,
       programs: selectedPrograms,
       companies: selectedCompanies
-    };
-
-    try {
-      const response = await fetch(`${WEBHOOK_URL}?action=count`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filters })
-      });
-      
-      const data = await response.json();
-      setRecipientCount(data.count);
-      showToast(`${data.count} recipients match your filters`, 'info');
-    } catch (error) {
-      showToast('Error counting recipients. Check webhook URL.', 'error');
-    }
+    },
+    action: 'test'
   };
 
-  const handleSendTestEmail = async () => {
-    if (!emailSubject || !emailBody) {
-      showToast('Please enter subject and message', 'error');
-      return;
+  try {
+    const response = await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(emailData)
+    });
+    
+    if (response.ok) {
+      showToast('Test email sent successfully!', 'success');
     }
-
-    const emailData = {
-      subject: '[TEST] ' + emailSubject,
-      body: editorRef.current?.innerHTML || emailBody,
-      filters: {
-        locations: selectedLocations,
-        specialties: selectedSpecialties,
-        programs: selectedPrograms,
-        companies: selectedCompanies
-      }
-    };
-
-    try {
-      const response = await fetch(`${WEBHOOK_URL}?action=test`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(emailData)
-      });
-      
-      if (response.ok) {
-        showToast('Test email sent successfully!', 'success');
-      }
-    } catch (error) {
-      showToast('Error sending test email. Check webhook URL.', 'error');
-    }
-  };
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('Error sending test email. Check webhook URL.', 'error');
+  }
+};
 
   const handleSendEmails = async () => {
-    if (!emailSubject || !emailBody) {
-      showToast('Please enter subject and message', 'error');
-      return;
-    }
+  if (!emailSubject || !emailBody) {
+    showToast('Please enter subject and message', 'error');
+    return;
+  }
 
-    const filterCount = selectedLocations.length + selectedSpecialties.length + 
-                       selectedPrograms.length + selectedCompanies.length;
-    
-    if (filterCount === 0) {
-      showToast('Please select at least one filter', 'error');
-      return;
-    }
+  const filterCount = selectedLocations.length + selectedSpecialties.length + 
+                     selectedPrograms.length + selectedCompanies.length;
+  
+  if (filterCount === 0) {
+    showToast('Please select at least one filter', 'error');
+    return;
+  }
 
-    if (!window.confirm(`Are you sure you want to send emails to ${recipientCount || 'selected'} recipients?`)) {
-      return;
-    }
+  if (!window.confirm(`Are you sure you want to send emails to ${recipientCount || 'selected'} recipients?`)) {
+    return;
+  }
 
-    const emailData = {
-      subject: emailSubject,
-      body: editorRef.current?.innerHTML || emailBody,
-      filters: {
-        locations: selectedLocations,
-        specialties: selectedSpecialties,
-        programs: selectedPrograms,
-        companies: selectedCompanies
-      },
-      attachments: attachments
-    };
-
-    try {
-      const response = await fetch(`${WEBHOOK_URL}?action=send`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(emailData)
-      });
-      
-      if (response.ok) {
-        showToast('Emails sent successfully!', 'success');
-        // Reset form
-        setEmailSubject('');
-        setEmailBody('');
-        editorRef.current.innerHTML = '';
-        setAttachments([]);
-      }
-    } catch (error) {
-      showToast('Error sending emails. Check webhook URL.', 'error');
-    }
+  const emailData = {
+    email_subject: emailSubject,
+    email_body: editorRef.current?.innerHTML || emailBody,
+    filters: {
+      locations: selectedLocations,
+      specialties: selectedSpecialties,
+      programs: selectedPrograms,
+      companies: selectedCompanies
+    },
+    test_mode: false,
+    action: 'send'
   };
+
+  try {
+    const response = await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(emailData)
+    });
+    
+    if (response.ok) {
+      showToast('Emails sent successfully!', 'success');
+      // Reset form
+      setEmailSubject('');
+      setEmailBody('');
+      editorRef.current.innerHTML = '';
+      setAttachments([]);
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('Error sending emails. Check webhook URL.', 'error');
+  }
+};
 
   // Login Screen
   if (!isAuthenticated) {
