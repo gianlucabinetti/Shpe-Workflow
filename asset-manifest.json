@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/Shpe-Workflow/static/css/main.062fc3a6.css",
+    "main.js": "/Shpe-Workflow/static/js/main.49545749.js",
+    "index.html": "/Shpe-Workflow/index.html",
+    "main.062fc3a6.css.map": "/Shpe-Workflow/static/css/main.062fc3a6.css.map",
+    "main.49545749.js.map": "/Shpe-Workflow/static/js/main.49545749.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.062fc3a6.css",
+    "static/js/main.49545749.js"
+  ]
+}
