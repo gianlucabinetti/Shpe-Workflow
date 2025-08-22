@@ -434,7 +434,7 @@ const handleSendTestEmail = async () => {
 
   const emailData = {
     email_subject: emailSubject,
-    email_body: editorRef.current?.innerHTML || emailBody,
+    email_body: safePrepareEmailHtml(editorRef.current?.innerHTML || emailBody),
     filters: {
       locations: selectedLocations,
       specialties: selectedSpecialties,
