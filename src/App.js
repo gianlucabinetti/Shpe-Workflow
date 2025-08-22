@@ -2,6 +2,62 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Eye, EyeOff, Bold, Italic, Underline, Link2, Paperclip, Send, Users, TestTube2, X, ChevronDown, ChevronUp, LogOut } from 'lucide-react';
 
 const SHPEEmailSystem = () => {
+  // --- super safe email wrapper (OFF by default) ---
+const ENABLE_SAFE_EMAIL_WRAPPER = true; // set true to stabilize signatures
+
+function safePrepareEmailHtml(rawHtml) {
+  try {
+    if (!ENABLE_SAFE_EMAIL_WRAPPER) return rawHtml || "";
+    const src = String(rawHtml || "");
+
+    // If already a full document, don't touch it
+    if (/\b<html[\s>]/i.test(src)) return src;
+
+    // Light, non-destructive cleanup
+    let html = src
+      .replace(/\u200B/g, "")                     // zero‑width spaces
+      .replace(/<!--\[if.*?endif\]-->/gis, "")    // Outlook conditionals
+      .replace(/\s(href|src)="\/\//gi, ' $1="https://'); // protocol‑relative → https
+
+    // Normalize images/paragraphs a bit (fixes “wonky side”)
+    html = html
+      .replace(/<img\b([^>]*)>/gi, (m, attrs) =>
+        /style=/i.test(attrs)
+          ? `<img ${attrs.replace(/style="/i, 'style="display:block;max-width:100%;height:auto;border:0;outline:none;text-decoration:none; ')}>`
+          : `<img style="display:block;max-width:100%;height:auto;border:0;outline:none;text-decoration:none;" ${attrs}>`
+      )
+      .replace(/<p\b([^>]*)>/gi, (m, attrs) =>
+        /style=/i.test(attrs)
+          ? `<p ${attrs.replace(/style="/i, 'style="margin:0 0 8px 0;line-height:1.4; ')}>`
+          : `<p style="margin:0 0 8px 0;line-height:1.4;" ${attrs}>`
+      );
+
+    // Minimal, email‑safe wrapper (600px centered)
+    return `<!doctype html>
+<html>
+  <head><meta charset="utf-8"></head>
+  <body style="margin:0;padding:0;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;margin:0;padding:0;">
+      <tr>
+        <td align="center" style="margin:0;padding:0;">
+          <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="width:600px;max-width:100%;border-collapse:collapse;margin:0;padding:0;">
+            <tr>
+              <td style="padding:0;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.4;color:#111;">
+                ${html}
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+  } catch {
+    // On any error, fall back to original
+    return rawHtml || "";
+  }
+}
+
   // Login State
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
